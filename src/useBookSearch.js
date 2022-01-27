@@ -8,6 +8,10 @@ function useBookSearch(query, pageNumber) {
   const [hasmore, setHasMore] = useState(false);
 
   useEffect(() => {
+    setBooks([]);
+  } , [query])
+
+  useEffect(() => {
     setLoading(true);
     setError(false);
 
@@ -22,17 +26,20 @@ function useBookSearch(query, pageNumber) {
     })
       .then((res) => {
         setBooks((prevBook) => {
-          return [...prevBook, res.data.docs.map((b) => b.title)];
+          return [...new Set([...prevBook, ...res.data.docs.map((b) => b.title)])];
         });
+        setHasMore(res.data.doc.length > 0)
+        setLoading(false)
         console.log(res.data);
       })
       .catch((e) => {
         if (axios.isCancel(e)) return;
+        setError(true)
       });
     return () => cancel();
   }, [query, pageNumber]);
 
-  return null;
+  return { Loading , error , books , hasmore } 
 }
 
 export default useBookSearch;
